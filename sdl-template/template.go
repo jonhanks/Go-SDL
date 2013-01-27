@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/0xe2-0x9a-0x9b/Go-SDL/sdl"
+	"github.com/jonhanks/Go-SDL/sdl"
 	"math/rand"
 	"time"
 )
@@ -32,14 +32,14 @@ func main() {
 
 	sdl.WM_SetCaption("Template", "")
 
-	ticker := time.NewTicker(1e9 / 2 /*2 Hz*/ )
+	ticker := time.NewTicker(1e9 / 2 /*2 Hz*/)
 
 loop:
 	for {
 		select {
 		case <-ticker.C:
 			// Note: For better efficiency, use UpdateRects instead of Flip
-			screen.FillRect(nil, /*color*/ rand.Uint32())
+			screen.FillRect(nil /*color*/, rand.Uint32())
 			//screen.Blit(&sdl.Rect{x,y, 0, 0}, image, nil)
 			screen.Flip()
 
