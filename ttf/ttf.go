@@ -30,6 +30,13 @@ func GoSdlVersion() string {
 	return "⚛SDL TTF bindings 1.0"
 }
 
+func err(status int) error {
+	if status < 0 {
+		return errors.New(sdl.GetError())
+	}
+	return nil
+}
+
 func wrap(cSurface *C.SDL_Surface) *sdl.Surface {
 	var s *sdl.Surface
 
@@ -51,19 +58,19 @@ type Font struct {
 }
 
 // Initializes SDL_ttf.
-func Init() int {
+func Init() error {
 	sdl.GlobalMutex.Lock()
 	status := int(C.TTF_Init())
 	sdl.GlobalMutex.Unlock()
-	return status
+	return err(status)
 }
 
 // Checks to see if SDL_ttf is initialized.  Returns 1 if true, 0 if false.
-func WasInit() int {
+func WasInit() error {
 	sdl.GlobalMutex.Lock()
 	status := int(C.TTF_WasInit())
 	sdl.GlobalMutex.Unlock()
-	return status
+	return err(status)
 }
 
 // Shuts down SDL_ttf.
@@ -74,7 +81,7 @@ func Quit() {
 }
 
 // Loads a font from a file at the specified point size.
-func OpenFont(file string, ptsize int) *Font {
+func OpenFont(file string, ptsize int) (*Font, error) {
 	sdl.GlobalMutex.Lock()
 
 	cfile := C.CString(file)
@@ -84,15 +91,15 @@ func OpenFont(file string, ptsize int) *Font {
 	sdl.GlobalMutex.Unlock()
 
 	if cfont == nil {
-		return nil
+		return nil, errors.New("Unable to load font")
 	}
 
-	return &Font{cfont: cfont}
+	return &Font{cfont: cfont}, nil
 }
 
 // Loads a font from a file containing multiple font faces at the specified
 // point size.
-func OpenFontIndex(file string, ptsize, index int) *Font {
+func OpenFontIndex(file string, ptsize, index int) (*Font, error) {
 	sdl.GlobalMutex.Lock()
 
 	cfile := C.CString(file)
@@ -102,10 +109,10 @@ func OpenFontIndex(file string, ptsize, index int) *Font {
 	sdl.GlobalMutex.Unlock()
 
 	if cfont == nil {
-		return nil
+		return nil, errors.New("Unable to load font")
 	}
 
-	return &Font{cfont: cfont}
+	return &Font{cfont: cfont}, nil
 }
 
 // Frees the pointer to the font.
@@ -351,7 +358,7 @@ func (f *Font) StyleName() string {
 //
 // For more information on glyph metrics, visit
 // http://freetype.sourceforge.net/freetype2/docs/tutorial/step2.html
-func (f *Font) GlyphMetrics(ch uint16) (int, int, int, int, int, int) {
+func (f *Font) GlyphMetrics(ch uint16) (int, int, int, int, int, error) {
 	sdl.GlobalMutex.Lock() // Because the underlying C code is fairly complex
 	f.mutex.Lock()         // Use a write lock, because 'C.TTF_GlyphMetrics' may update font's internal caches
 
@@ -360,46 +367,46 @@ func (f *Font) GlyphMetrics(ch uint16) (int, int, int, int, int, int) {
 	miny := C.int(0)
 	maxy := C.int(0)
 	advance := C.int(0)
-	err := C.TTF_GlyphMetrics(f.cfont, C.Uint16(ch), &minx, &maxx, &miny, &maxy, &advance)
+	status := int(C.TTF_GlyphMetrics(f.cfont, C.Uint16(ch), &minx, &maxx, &miny, &maxy, &advance))
 
 	sdl.GlobalMutex.Unlock()
 	f.mutex.Unlock()
 
-	return int(minx), int(maxx), int(miny), int(maxy), int(advance), int(err)
+	return int(minx), int(maxx), int(miny), int(maxy), int(advance), err(status)
 }
 
 // Return the width and height of the rendered Latin-1 text.
 //
-// Return values are (width, height, err) where err is 0 for success, -1 on any error.
-func (f *Font) SizeText(text string) (int, int, int) {
+// Return values are (width, height, error).
+func (f *Font) SizeText(text string) (int, int, error) {
 	sdl.GlobalMutex.Lock() // Because the underlying C code is fairly complex
 	f.mutex.Lock()         // Use a write lock, because 'C.TTF_Size*' may update font's internal cache
 
 	w := C.int(0)
 	h := C.int(0)
 	s := C.CString(text)
-	err := C.TTF_SizeText(f.cfont, s, &w, &h)
+	status := int(C.TTF_SizeText(f.cfont, s, &w, &h))
 
 	sdl.GlobalMutex.Unlock()
 	f.mutex.Unlock()
 
-	return int(w), int(h), int(err)
+	return int(w), int(h), err(status)
 }
 
 // Return the width and height of the rendered UTF-8 text.
 //
-// Return values are (width, height, err) where err is 0 for success, -1 on any error.
-func (f *Font) SizeUTF8(text string) (int, int, int) {
+// Return values are (width, height, error).
+func (f *Font) SizeUTF8(text string) (int, int, error) {
 	sdl.GlobalMutex.Lock() // Because the underlying C code is fairly complex
 	f.mutex.Lock()         // Use a write lock, because 'C.TTF_Size*' may update font's internal caches
 
 	w := C.int(0)
 	h := C.int(0)
 	s := C.CString(text)
-	err := C.TTF_SizeUTF8(f.cfont, s, &w, &h)
+	status := int(C.TTF_SizeUTF8(f.cfont, s, &w, &h))
 
 	sdl.GlobalMutex.Unlock()
 	f.mutex.Unlock()
 
-	return int(w), int(h), int(err)
+	return int(w), int(h), err(status)
 }
