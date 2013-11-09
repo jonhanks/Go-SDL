@@ -1,4 +1,7 @@
 # Introduction
+This is a slightly modified fork of 0xe2-0x9a-0x9b version of Banthar's Go-SDL.  The main changes are to use errors instead of integers for return values.
+
+I used 0xe2-0x9a-0x9b's fork as I could get it to run on OS X.  0xe2-0x9a-0x9b has since erased his account.
 
 This is an improved version of Banthar's [Go-SDL](http://github.com/banthar/Go-SDL).
 
@@ -10,7 +13,7 @@ The improvements/differences are:
 * Support for low-level SDL sound functions
 
 * Can be installed in parallel to Banthar's Go-SDL
-* The import paths are "github.com/0xe2-0x9a-0x9b/Go-SDL/..."
+* The import paths are "github.com/jonhanks/Go-SDL/..."
 
 
 # Installation
